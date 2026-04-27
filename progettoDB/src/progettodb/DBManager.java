@@ -36,12 +36,13 @@ public class DBManager {
         try {
             Connection conn = DriverManager.getConnection("jdbc:sqlite:scuola.db");
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT nome, cognome FROM alunni WHERE id_classe = '" + idClasse + "'");
+            ResultSet rs = st.executeQuery("SELECT nome, cognome, id_classe FROM alunni");
             
             ArrayList<String> studenti = new ArrayList();
             
             while(rs.next()){
-                studenti.add(rs.getString("id_classe") + " " + rs.getString("indirizzo"));
+                if(rs.getString("id_classe").equals(idClasse))
+                    studenti.add(rs.getString("nome") + " " + rs.getString("cognome"));
             }
             
             return studenti;
@@ -50,6 +51,5 @@ public class DBManager {
             e.printStackTrace();
         }
         return null;
-    } 
-    //
+    }
 }

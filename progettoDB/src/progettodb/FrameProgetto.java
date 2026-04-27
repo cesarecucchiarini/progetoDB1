@@ -7,6 +7,8 @@ package progettodb;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.*;
 
 /**
@@ -33,20 +35,29 @@ public class FrameProgetto extends javax.swing.JFrame {
         modelClassi = new DefaultComboBoxModel();
         JComboBox boxClassi = new JComboBox(modelClassi);
         boxClassi.setBorder(BorderFactory.createEmptyBorder(0, 300, 0, 300));
+        boxClassi.addActionListener(new ActionListener(){
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                modelStudenti.clear();
+                modelStudenti.addAll(DBManager.leggiStudenti(((String)boxClassi.getSelectedItem()).substring(0, 2)));
+            }
+        });
         
         modelStudenti = new DefaultListModel();
         JList listStudenti = new JList(modelStudenti);
         
+        JScrollPane scrollPane = new JScrollPane(listStudenti);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 500, 0, 500));
+        
         panel.add(Box.createVerticalGlue());
         panel.add(boxClassi);
         panel.add(Box.createVerticalGlue());
-        panel.add(listStudenti);
+        panel.add(scrollPane);
         panel.add(Box.createVerticalGlue());
         
         this.add(panel, BorderLayout.CENTER);
         
         modelClassi.addAll(DBManager.leggiClassi());
-        modelStudenti.addAll(DBManager.leggiStudenti("3D"));
         
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setVisible(true);
