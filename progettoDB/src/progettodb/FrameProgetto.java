@@ -25,11 +25,12 @@ public class FrameProgetto extends javax.swing.JFrame {
     private JComboBox<String> boxClassi;
     private JList<String> listStudenti;
     private JButton toggleButton;
+    private JButton cambiaFormButton;
     private boolean modalitaGite = false;
     private ItemListener listenerClassi = e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 Object item = e.getItem();
-                String classe = ((String) item).split(" ")[0];
+                String classe = (String) item;
                 modelStudenti.clear();
                 aggiornaListaStudenti(DBManager.leggiStudentiClasse(classe));
         }};
@@ -75,8 +76,7 @@ public class FrameProgetto extends javax.swing.JFrame {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (modalitaGite && value instanceof String) {
                     String testo = (String) value;
-                    String[] parti = testo.split(" ", 2);
-                    setText(parti.length == 2 ? parti[1] : testo);
+                    setText(testo);
                 }
                 return this;
             }
@@ -100,6 +100,14 @@ public class FrameProgetto extends javax.swing.JFrame {
             modalitaGite = !modalitaGite;
             cambiaModalita();
         });
+
+        cambiaFormButton = new JButton("Vai al form inserimento");
+        cambiaFormButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cambiaFormButton.setAlignmentX(CENTER_ALIGNMENT);
+        cambiaFormButton.addActionListener(e -> {
+            new FrameInserimentoStudente().setVisible(true);
+            dispose();
+        });
         
         panel.add(Box.createVerticalGlue());
         panel.add(titolo);
@@ -107,6 +115,8 @@ public class FrameProgetto extends javax.swing.JFrame {
         panel.add(sottotitolo);
         panel.add(Box.createVerticalStrut(20));
         panel.add(toggleButton);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(cambiaFormButton);
         panel.add(Box.createVerticalStrut(18));
         panel.add(boxClassi);
         panel.add(Box.createVerticalStrut(18));
