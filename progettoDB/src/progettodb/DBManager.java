@@ -35,15 +35,15 @@ public class DBManager {
     public static ArrayList<String> leggiStudentiClasse(String idClasse){
         try (
             Connection conn = DriverManager.getConnection("jdbc:sqlite:scuola.db");
-            PreparedStatement ps = conn.prepareStatement(
+            Statement st = conn.createStatement()
+        ) {
+            String idClasseSqlValue = toSqlValue(idClasse);
+            ResultSet rs = st.executeQuery(
                 "SELECT classi.indirizzo, alunni.nome, alunni.cognome " +
                 "FROM alunni " +
                 "JOIN classi ON alunni.id_classe = classi.id_classe " +
-                "WHERE alunni.id_classe = ?"
-            )
-        ) {
-            ps.setString(1, idClasse);
-            ResultSet rs = ps.executeQuery();
+                "WHERE alunni.id_classe = " + idClasseSqlValue
+            );
             ArrayList<String> studenti = new ArrayList<>();
             
             while(rs.next()){
@@ -84,16 +84,16 @@ public class DBManager {
     public static ArrayList<String> leggiStudentiGite(String idGita){
         try (
             Connection conn = DriverManager.getConnection("jdbc:sqlite:scuola.db");
-            PreparedStatement ps = conn.prepareStatement(
+            Statement st = conn.createStatement()
+        ) {
+            String idGitaSqlValue = toSqlValue(idGita);
+            ResultSet rs = st.executeQuery(
                 "SELECT alunni.nome, alunni.cognome, gite.prezzo, gite.destinazione, partecipanti.pagato " +
                 "FROM partecipanti " +
                 "JOIN alunni ON partecipanti.id_alunno = alunni.id_alunno " +
                 "JOIN gite ON partecipanti.id_gita = gite.id_gita " +
-                "WHERE partecipanti.id_gita = ? " 
-            )
-        ) {
-            ps.setString(1, idGita);
-            ResultSet rs = ps.executeQuery();
+                "WHERE partecipanti.id_gita = " + idGitaSqlValue
+            );
             ArrayList<String> studenti = new ArrayList<>();
             
             while(rs.next()){
@@ -123,26 +123,31 @@ public class DBManager {
         
         try (
             Connection conn = DriverManager.getConnection("jdbc:sqlite:scuola.db");
-            PreparedStatement psNextId = conn.prepareStatement(
-                "SELECT COALESCE(MAX(id_alunno), 0) + 1 AS nuovo_id FROM alunni"
-            );
-            ResultSet rs = psNextId.executeQuery()
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT COALESCE(MAX(id_alunno), 0) + 1 AS nuovo_id FROM alunni")
         ) {
-            int nuovoId = rs.getInt("nuovo_id");
-            
-            try (PreparedStatement psInsert = conn.prepareStatement(
-                "INSERT INTO alunni (id_alunno, nome, cognome, id_classe) VALUES (?, ?, ?, ?)"
-            )) {
-                psInsert.setInt(1, nuovoId);
-                psInsert.setString(2, nome);
-                psInsert.setString(3, cognome);
-                psInsert.setString(4, idClasse);
-                
-                return psInsert.executeUpdate() == 1;
+            if (!rs.next()) {
+                return false;
             }
+            int nuovoId = rs.getInt("nuovo_id");
+            String queryInsert =
+                "INSERT INTO alunni (id_alunno, nome, cognome, id_classe) VALUES (" +
+                nuovoId + ", " +
+                toSqlValue(nome) + ", " +
+                toSqlValue(cognome) + ", " +
+                toSqlValue(idClasse) + ")";
+
+            return st.executeUpdate(queryInsert) == 1;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private static String toSqlValue(String value) {
+        if (value == null) {
+            return "NULL";
+        }
+        return "'" + value.replace("'", "''") + "'";
     }
 }
